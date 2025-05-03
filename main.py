@@ -1,11 +1,12 @@
 import csv
 import requests
 import time
+import os
 from flask import Flask
 import threading
 
-# إعدادات Telegram
-TOKEN = "7687004188:AAEptk2YeH1RruqV83YyOTMdndU7sdA7fmo"
+# توكن البوت من متغير البيئة
+TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = "756852322"
 
 def send_telegram(message_text):
@@ -13,7 +14,7 @@ def send_telegram(message_text):
     params = {"chat_id": CHAT_ID, "text": message_text}
     requests.get(url, params=params)
 
-# خادم Flask لتشغيل UptimeRobot
+# إعداد خادم Flask لـ UptimeRobot
 app = Flask('')
 @app.route('/')
 def home():
@@ -22,7 +23,7 @@ def home():
 def run_web():
     app.run(host='0.0.0.0', port=8080)
 
-# تشغيل Flask في خلفية Replit
+# تشغيل الخادم في الخلفية
 threading.Thread(target=run_web).start()
 
 # اسم ملف CSV
@@ -48,35 +49,30 @@ while True:
                 support = float(row["دعم التعديل الذكي"])
                 status = row["حالة التنبيه"]
 
-                # تنبيه اقتراب من نقطة الدخول (أقل من 1%)
                 if status == "" and (entry * 0.99 <= current < entry):
                     msg = f"{symbol}: اقترب من نقطة الدخول (السعر الحالي {current} ريال)"
                     send_telegram(msg)
                     row["حالة التنبيه"] = "تنبيه اقتراب"
                     updated = True
 
-                # تنبيه دخول فعلي
                 elif status in ["", "تنبيه اقتراب"] and current >= entry:
                     msg = f"{symbol}: تنبيه دخول أول عند {entry}"
                     send_telegram(msg)
                     row["حالة التنبيه"] = "تم الدخول"
                     updated = True
 
-                # تحقق الهدف
                 elif status == "تم الدخول" and current >= target:
                     msg = f"{symbol}: ✅ تحقق الهدف عند {target}"
                     send_telegram(msg)
                     row["حالة التنبيه"] = "تحقق الهدف"
                     updated = True
 
-                # وقف الخسارة
                 elif status == "تم الدخول" and current <= stop:
                     msg = f"{symbol}: ❌ تفعيل وقف الخسارة عند {stop}"
                     send_telegram(msg)
                     row["حالة التنبيه"] = "وقف الخسارة"
                     updated = True
 
-                # دخول ذكي (تعديل)
                 elif status == "تم الدخول" and current <= support:
                     msg = f"{symbol}: دخول ثاني ذكي عند الدعم {support}"
                     send_telegram(msg)
