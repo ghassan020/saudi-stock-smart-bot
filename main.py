@@ -100,4 +100,6 @@ threading.Thread(target=start_bot).start()
 
 # تشغيل خادم الإنتاج باستخدام waitress
 if __name__ == "__main__":
-    serve(app, host="0.0.0.0", port=8080)
+    serve(app, host="0.0.0.0", port=5000)
+    
+    
